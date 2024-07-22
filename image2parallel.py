@@ -56,8 +56,11 @@ class RectShape:
 
 
 class SVGPixel(RectShape):
-    de: int
-    shade: int
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.de: int = 0
+        self.shade: int = 0
 
     def draw_line(self, draw: svgwrite.Drawing, coords, pen):
         draw.add(draw.line(coords[:2], coords[2:], stroke=pen))
@@ -80,7 +83,6 @@ class SVGPixel(RectShape):
             self.draw_line(draw, [self.x1 + self.de, self.y1 - self.de, self.x1 + self.de, self.y2 - self.de], pen)
             self.draw_line(draw, [self.x1 + self.de, self.y2 - self.de, self.x1, self.y2], pen)
             self.draw_line(draw, [self.x1 + self.de, self.y2 - self.de, self.x2 + self.de, self.y2 - self.de], pen)
-
 
             self.draw_polygon(draw, [(self.x1, self.y1),
                             (self.x1 + self.de, self.y1 - self.de),
@@ -128,7 +130,16 @@ def compute_viewbox(drawing):
     return min_x, min_y, max_x, max_y
 
 
-def draw_parallel(drawing, img: np.array, s: int =50, use_rgb: bool = False, cmap=None, vmin=None, vmax=None, outline_color=(100, 100, 100, 100), margin=0):
+def draw_parallel(drawing, 
+                  img: np.array, 
+                  s: int =50, 
+                  use_rgb: bool = False, 
+                  cmap=None, 
+                  vmin=None, 
+                  vmax=None, 
+                  outline_color=(100, 100, 100, 100), 
+                  margin=0, 
+                  draw_hidden=False):
 
     padding_x = 0
     padding_y = 0    
@@ -152,6 +163,10 @@ def draw_parallel(drawing, img: np.array, s: int =50, use_rgb: bool = False, cma
     for k in range(img.shape[1]): # depth
         for j in range(img.shape[2]): # width
             for i in range(img.shape[0]): # height
+                if not draw_hidden:
+                    if j < img.shape[2] - 1 and k != (img.shape[1] - 1) and i != (img.shape[0] - 1):
+                        continue
+
                 box = SVGPixel()
                 box.outline = outline_color
 
@@ -185,4 +200,3 @@ def draw_parallel(drawing, img: np.array, s: int =50, use_rgb: bool = False, cma
     max_x += margin
     max_y += margin
     drawing.viewbox(min_x, min_y, max_x - min_x, max_y - min_y)
-
